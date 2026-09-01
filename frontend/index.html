@@ -1,0 +1,1353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRIFTIQ — Lecture to Notes</title>
+<meta name="description" content="AI-powered lecture transcription with multilingual support, classroom tracking, and auto-generated structured notes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0f2a4d; --blue:#4a7ab8; --blue-light:#dae8fc;
+    --gold:#c9a836; --gold-light:#fff2cc;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f5f7fa;
+    --red:#ef4444; --green:#16a34a; --amber:#d97706;
+    --purple:#7c3aed; --teal:#0d9488; --indigo:#4338ca;
+    --emerald:#059669; --rose:#e11d48;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;color:var(--ink);background:var(--bg);line-height:1.55;}
+
+  /* ── Header ── */
+  header{background:linear-gradient(135deg,#0a1f3c,var(--navy));color:#fff;
+    padding:14px 28px;display:flex;align-items:center;justify-content:space-between;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);}
+  header .brand{font-size:22px;font-weight:800;letter-spacing:-.01em;}
+  header .brand b{color:#60a5fa;}
+  header .brand small{font-size:11px;font-weight:500;color:#93c5fd;letter-spacing:.08em;
+    display:block;margin-top:-2px;}
+  .accent{height:3px;background:linear-gradient(90deg,#3b82f6,var(--gold),#f43f5e);}
+  main{max-width:1280px;margin:0 auto;padding:28px 24px;}
+
+  /* ── Cards ── */
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:22px 24px;margin-bottom:22px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+  h2{color:var(--navy);font-size:17px;font-weight:700;margin-bottom:14px;}
+  h3{color:var(--navy);font-size:14px;font-weight:600;margin-bottom:8px;}
+
+  /* ── Forms ── */
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:130px;}
+  .field label{font-size:11px;color:var(--muted);font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;}
+  .field input,.field select{padding:9px 12px;border:1.5px solid var(--line);
+    border-radius:7px;font-size:14px;font-family:inherit;
+    transition:border-color .15s;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--blue);}
+
+  /* ── Buttons ── */
+  button{background:var(--blue);color:#fff;border:none;padding:10px 20px;
+    border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;
+    font-family:inherit;transition:all .15s;letter-spacing:.01em;}
+  button:hover:not(:disabled){background:var(--navy);transform:translateY(-1px);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  button:active:not(:disabled){transform:translateY(0);}
+  button:disabled{background:#9ca3af;cursor:not-allowed;transform:none;}
+  button.ghost{background:#fff;color:var(--blue);border:1.5px solid var(--blue);}
+  button.ghost:hover:not(:disabled){background:var(--blue-light);color:var(--navy);}
+  button.record{background:linear-gradient(135deg,#dc2626,var(--red));}
+  button.record:hover:not(:disabled){background:linear-gradient(135deg,#b91c1c,#dc2626);}
+  button.stop{background:linear-gradient(135deg,#1e3a5f,var(--navy));}
+  button.mark{background:linear-gradient(135deg,#b8991f,var(--gold));color:#1a0e00;}
+  button.mark:hover:not(:disabled){background:linear-gradient(135deg,#a08010,#b8991f);color:#fff;}
+  button.danger-btn{background:var(--red);color:#fff;font-size:13px;padding:7px 14px;}
+  button.danger-btn:hover:not(:disabled){background:#b91c1c;}
+  button.sm{padding:6px 14px;font-size:13px;}
+  button.teal{background:linear-gradient(135deg,#0f766e,var(--teal));color:#fff;}
+  button.teal:hover:not(:disabled){background:linear-gradient(135deg,#0d6460,#0f766e);}
+  button.purple{background:linear-gradient(135deg,#6d28d9,var(--purple));color:#fff;}
+  button.purple:hover:not(:disabled){background:linear-gradient(135deg,#5b21b6,#6d28d9);}
+
+  .file-input{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;
+    border:1.5px dashed var(--blue);border-radius:8px;cursor:pointer;
+    color:var(--blue);font-size:14px;font-weight:600;transition:background .15s;}
+  .file-input:hover{background:var(--blue-light);}
+  input[type=file]{display:none;}
+
+  .status{font-size:14px;color:var(--muted);font-style:italic;}
+  .status.ok{color:var(--green);}
+  .status.err{color:var(--red);}
+
+  /* ── Live Recording Panel ── */
+  .live-panel{background:linear-gradient(135deg,#0a1f3c,#0f2a4d);color:#fff;
+    padding:20px 24px;border-radius:10px;display:flex;align-items:center;
+    gap:18px;flex-wrap:wrap;}
+  .live-panel .timer{font-family:'JetBrains Mono',monospace;font-size:34px;
+    font-weight:600;color:#fff;letter-spacing:.04em;}
+  .live-panel .timer.warn{color:var(--gold);}
+  .live-panel .timer.danger{color:#f87171;}
+  .live-panel .rec-dot{width:14px;height:14px;border-radius:50%;
+    background:#f87171;animation:blink 1s infinite;flex-shrink:0;}
+  @keyframes blink{50%{opacity:.2;}}
+  .live-panel .target{font-size:13px;color:#93c5fd;font-style:italic;margin-top:3px;}
+  .live-panel .actions{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* ── Voice Command Indicator ── */
+  .voice-cmd-strip{background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.4);
+    border-radius:8px;padding:10px 16px;margin-top:12px;display:flex;
+    align-items:center;gap:12px;flex-wrap:wrap;}
+  .voice-cmd-strip .vc-status{font-size:13px;color:#c4b5fd;font-weight:500;}
+  .voice-cmd-strip .vc-cmds{font-size:12px;color:#a5b4fc;}
+  .voice-flash{position:fixed;bottom:32px;right:32px;
+    background:linear-gradient(135deg,var(--indigo),var(--purple));color:#fff;
+    padding:14px 22px;border-radius:10px;font-size:15px;font-weight:700;
+    box-shadow:0 4px 20px rgba(99,102,241,.5);z-index:900;
+    animation:voiceIn .3s ease;}
+  @keyframes voiceIn{from{opacity:0;transform:scale(.8) translateY(10px);}
+    to{opacity:1;transform:scale(1) translateY(0);}}
+
+  .bookmarks-list{margin-top:12px;padding:10px 16px;background:rgba(201,168,54,.08);
+    border:1px dashed var(--gold);border-radius:8px;font-size:13px;}
+  .bookmarks-list b{color:var(--amber);}
+
+  /* ── Offline ── */
+  #offlineBanner{display:none;position:sticky;top:0;z-index:950;
+    background:var(--purple);color:#fff;padding:10px 20px;text-align:center;
+    font-size:14px;font-weight:600;}
+  #offlineBanner.visible{display:block;}
+
+  /* ── Toast ── */
+  .banner{position:fixed;top:24px;left:50%;transform:translateX(-50%);
+    background:var(--gold);color:var(--navy);padding:16px 28px;border-radius:10px;
+    font-size:15px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.18);
+    z-index:1000;animation:slideDown .3s;}
+  .banner.danger{background:var(--red);color:#fff;}
+  @keyframes slideDown{from{transform:translate(-50%,-120%);}to{transform:translate(-50%,0);}}
+
+  .hidden{display:none !important;}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:820px){
+    .split{grid-template-columns:1fr;}
+    .live-panel{flex-direction:column;align-items:stretch;}
+    .live-panel .actions{margin-left:0;}
+  }
+
+  /* ── Language badge ── */
+  .lang-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;
+    border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.03em;}
+  .lang-badge.en{background:#dbeafe;color:#1d4ed8;}
+  .lang-badge.multilang{background:linear-gradient(135deg,#ede9fe,#dbeafe);
+    color:#5b21b6;border:1px solid #c4b5fd;}
+
+  /* ── Notes / Transcript views ── */
+  .notes-view{background:#fafafa;border:1px solid var(--line);border-radius:10px;
+    padding:20px;max-height:620px;overflow-y:auto;}
+  .notes-view h1{color:var(--navy);font-size:19px;margin-bottom:12px;
+    border-bottom:2px solid var(--blue);padding-bottom:6px;}
+  .notes-view h2{color:var(--navy);font-size:15px;margin:16px 0 8px;}
+  .notes-view h3{color:var(--blue);font-size:13px;margin:10px 0 4px;}
+  .notes-view ul{margin-left:20px;margin-bottom:10px;}
+  .notes-view li{margin:4px 0;}
+  .notes-view p{margin:6px 0;}
+  .notes-view code{background:#f3f4f6;padding:2px 6px;border-radius:4px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;}
+  .notes-view strong{color:var(--navy);}
+  .transcript-view{background:#fafafa;border:1px solid var(--line);border-radius:10px;
+    padding:16px;max-height:620px;overflow-y:auto;font-size:13.5px;
+    line-height:1.65;white-space:pre-wrap;font-family:'Inter',sans-serif;}
+  .lang-marker{background:linear-gradient(135deg,#ede9fe,#dbeafe);
+    color:#5b21b6;padding:2px 8px;border-radius:8px;font-size:11px;
+    font-weight:700;display:inline-block;margin:4px 2px;}
+
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;
+    border-radius:10px;background:var(--blue-light);color:var(--navy);margin-right:6px;}
+  .tag.gold{background:var(--gold-light);color:#5c4400;}
+  .tag.teal{background:#ccfbf1;color:#0f766e;}
+  .timing{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;}
+  .divider{text-align:center;color:var(--muted);font-size:12px;margin:18px 0;
+    letter-spacing:.15em;text-transform:uppercase;}
+  .divider::before,.divider::after{content:'';display:inline-block;width:60px;height:1px;
+    background:var(--line);vertical-align:middle;margin:0 10px;}
+  textarea{width:100%;min-height:110px;padding:12px;border:1.5px solid var(--line);
+    border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;
+    transition:border-color .15s;}
+  textarea:focus{outline:none;border-color:var(--blue);}
+
+  /* ── Dashboard Lecture Rows ── */
+  .lect-row{display:flex;align-items:center;gap:14px;padding:13px 16px;
+    border:1px solid var(--line);border-radius:9px;margin-bottom:8px;
+    background:#fff;cursor:pointer;transition:all .15s;}
+  .lect-row:hover{background:var(--blue-light);border-color:#93c5fd;
+    box-shadow:0 2px 8px rgba(74,122,184,.1);}
+  .lect-row .subj{font-weight:700;color:var(--navy);min-width:130px;}
+  .lect-row .meta{font-size:12px;color:var(--muted);flex:1;}
+  .lect-row .src-tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;
+    background:#f3f4f6;color:var(--muted);}
+  .lect-row .src-tag.text{background:#ede9fe;color:#6d28d9;}
+  .lect-row .src-tag.multilang{background:linear-gradient(135deg,#ede9fe,#dbeafe);color:#5b21b6;}
+
+  .badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;}
+  .badge.draft{background:var(--gold-light);color:#5c4400;}
+  .badge.published{background:#dcfce7;color:#166534;}
+
+  /* ── Coverage tracker ── */
+  #coverageCard{border-left:4px solid var(--teal);}
+  #coverageCard h2{color:#0f766e;}
+  .classroom-block{border:1px solid #d1fae5;border-radius:10px;margin-bottom:12px;overflow:hidden;}
+  .classroom-header{background:#f0fdf4;padding:13px 18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:space-between;user-select:none;
+    transition:background .15s;}
+  .classroom-header:hover{background:#dcfce7;}
+  .classroom-header .cls-name{font-weight:700;color:var(--navy);font-size:15px;}
+  .classroom-header .cls-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .classroom-header .cls-chevron{font-size:13px;color:var(--teal);transition:transform .25s;}
+  .classroom-header.open .cls-chevron{transform:rotate(180deg);}
+  .classroom-sessions{display:none;padding:14px 18px;background:#fff;}
+  .classroom-sessions.open{display:block;}
+  .session-row{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);
+    align-items:flex-start;flex-wrap:wrap;}
+  .session-row:last-child{border-bottom:none;}
+  .session-date{font-size:12px;color:var(--muted);min-width:120px;flex-shrink:0;padding-top:3px;}
+  .session-topics{display:flex;flex-wrap:wrap;gap:6px;flex:1;}
+  .topic-chip{background:var(--blue-light);color:var(--navy);border-radius:12px;
+    padding:3px 11px;font-size:12px;font-weight:600;}
+  .topic-chip.none{background:#f3f4f6;color:var(--muted);font-style:italic;font-weight:400;}
+  .session-status{font-size:11px;padding:2px 8px;border-radius:8px;flex-shrink:0;}
+  .session-status.published{background:#dcfce7;color:#166534;}
+  .session-status.draft{background:var(--gold-light);color:#5c4400;}
+
+  /* ── Analytics ── */
+  #analyticsCard{border-left:4px solid var(--indigo);}
+  #analyticsCard h2{color:var(--indigo);}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:20px;}
+  .stat-box{background:linear-gradient(135deg,#f8fafc,#fff);border:1px solid var(--line);
+    border-radius:10px;padding:16px 18px;text-align:center;}
+  .stat-box .stat-num{font-size:32px;font-weight:800;color:var(--navy);line-height:1;}
+  .stat-box .stat-lbl{font-size:11px;color:var(--muted);font-weight:600;
+    text-transform:uppercase;letter-spacing:.05em;margin-top:5px;}
+  .stat-box.blue .stat-num{color:var(--blue);}
+  .stat-box.green .stat-num{color:var(--emerald);}
+  .stat-box.gold .stat-num{color:var(--amber);}
+  .stat-box.purple .stat-num{color:var(--purple);}
+  .stat-box.teal .stat-num{color:var(--teal);}
+
+  /* Bar chart */
+  .chart-wrap{margin-top:4px;}
+  .chart-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px;}
+  .chart-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+  .chart-bar-label{font-size:12px;color:var(--ink);min-width:160px;max-width:160px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;flex-shrink:0;}
+  .chart-bar-track{flex:1;background:#f3f4f6;border-radius:6px;height:18px;overflow:hidden;}
+  .chart-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;
+    background:linear-gradient(90deg,var(--blue),var(--indigo));}
+  .chart-bar-count{font-size:12px;font-weight:700;color:var(--muted);min-width:28px;}
+  .chart-bar-fill.gold{background:linear-gradient(90deg,var(--gold),var(--amber));}
+  .chart-bar-fill.teal{background:linear-gradient(90deg,var(--teal),var(--emerald));}
+  .analytics-empty{color:var(--muted);font-size:14px;font-style:italic;}
+
+  /* ── QR Code ── */
+  .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;
+    padding:16px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);
+    border:1px solid #6ee7b7;border-radius:12px;width:fit-content;}
+  .qr-wrap img{border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+  .qr-wrap .qr-hint{font-size:12px;color:var(--teal);font-weight:600;
+    text-align:center;max-width:180px;}
+  .qr-wrap .qr-url{font-size:11px;color:var(--muted);word-break:break-all;
+    max-width:200px;text-align:center;}
+
+  /* ── Note editor ── */
+  .md-editor{width:100%;min-height:400px;padding:14px;
+    border:1.5px solid var(--line);border-radius:8px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    line-height:1.6;resize:vertical;transition:border-color .15s;}
+  .md-editor:focus{outline:none;border-color:var(--blue);}
+  #autoSaveBadge{font-size:12px;color:var(--green);font-style:italic;
+    margin-left:10px;opacity:0;transition:opacity .5s;}
+  #autoSaveBadge.visible{opacity:1;}
+
+  /* ── Progress bar ── */
+  .progress-wrap{width:100%;background:#e5e7eb;border-radius:6px;height:8px;
+    margin:12px 0;overflow:hidden;display:none;}
+  .progress-wrap.visible{display:block;}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));
+    width:0%;transition:width .3s;border-radius:6px;}
+
+  /* ── Vault ── */
+  #vaultCard{border-left:4px solid var(--gold);background:#fffdf0;}
+  #vaultCard h2{color:#7c5a00;}
+  .vault-entry{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;
+    border:1px solid #fcd34d;border-radius:9px;margin-bottom:8px;background:#fff;flex-wrap:wrap;}
+  .vault-entry .ve-info{flex:1;min-width:160px;}
+  .vault-entry .ve-subject{font-weight:700;color:var(--navy);font-size:14px;}
+  .vault-entry .ve-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+  .vault-entry .ve-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+  /* ── Session restore ── */
+  #sessionRestoreBar{background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;
+    padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  #sessionRestoreBar p{flex:1;font-size:14px;color:var(--navy);}
+
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--line);
+    border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;
+    vertical-align:middle;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .download-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+
+  /* ── Extract meta ── */
+  .extract-meta{background:#f8fafc;border:1px solid var(--line);border-radius:8px;
+    padding:14px 16px;margin-bottom:12px;}
+
+  /* ── Misc ── */
+  .coverage-empty,.analytics-empty{color:var(--muted);font-size:14px;font-style:italic;}
+  .dot-sep{color:var(--line);margin:0 4px;}
+</style>
+</head>
+<body>
+<div id="offlineBanner">⚠ You are offline — recording continues safely. Reconnect before stopping to upload.</div>
+
+<header>
+  <div class="brand">DRIFT<b>IQ</b><small>Lecture Intelligence Platform</small></div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <div class="provider-badge" id="providerBadge" style="font-size:12px;color:#93c5fd;font-style:italic;"></div>
+    <div class="hidden" id="userChip" style="display:flex;align-items:center;gap:10px;">
+      <span id="userLabel" style="font-size:13px;color:#c6d6ee;"></span>
+      <button id="logoutBtn" style="padding:5px 12px;font-size:12px;background:#1e3a5f;">Sign out</button>
+    </div>
+  </div>
+</header>
+<div class="accent"></div>
+
+<main>
+
+  <!-- ══ AUTH ══ -->
+  <div class="card hidden" id="authCard">
+    <h2>Sign in to DRIFTIQ</h2>
+    <div class="row">
+      <div class="field" style="min-width:220px;">
+        <label>Email</label>
+        <input id="aEmail" type="email" placeholder="you@institution.edu" autocomplete="username">
+      </div>
+      <div class="field" style="min-width:220px;">
+        <label>Password</label>
+        <input id="aPassword" type="password" placeholder="min 8 characters" autocomplete="current-password">
+      </div>
+      <div class="field" style="min-width:200px;">
+        <label>Name (new accounts)</label>
+        <input id="aName" placeholder="e.g. Prof. Maaran">
+      </div>
+    </div>
+    <div style="margin-top:16px;" class="row">
+      <button id="loginBtn">Sign in</button>
+      <button class="ghost" id="registerBtn">Create account</button>
+    </div>
+    <div id="authStatus" class="status" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- ══ VAULT RECOVERY ══ -->
+  <div class="card hidden" id="vaultCard">
+    <h2>⚠ Unsent Recordings — Safely stored in your browser</h2>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:14px;">
+      These recordings could not be uploaded due to a network issue. They are preserved here.
+      Retry when you're back online, or download the audio file.
+    </p>
+    <div id="vaultList"></div>
+  </div>
+
+  <!-- ══ SESSION RESTORE ══ -->
+  <div id="sessionRestoreBar" class="hidden">
+    <p>📋 <strong>Last session notes found.</strong> Restore your previous lecture notes instantly.</p>
+    <button class="ghost sm" id="restoreSessionBtn">Restore</button>
+    <button class="ghost sm" id="dismissSessionBtn" style="border-color:var(--muted);color:var(--muted);">Dismiss</button>
+  </div>
+
+  <!-- ══ ANALYTICS ══ -->
+  <div class="card hidden" id="analyticsCard">
+    <div class="row" style="justify-content:space-between;margin-bottom:16px;">
+      <h2 style="margin-bottom:0;">📊 Lecture Analytics</h2>
+      <button class="ghost sm" id="analyticsRefresh">↻ Refresh</button>
+    </div>
+    <div id="analyticsContent">
+      <div class="analytics-empty">No data yet — analytics will appear after your first lecture.</div>
+    </div>
+  </div>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div class="card hidden" id="dashCard">
+    <div class="row" style="justify-content:space-between;">
+      <h2 style="margin-bottom:0;">Your Lectures</h2>
+      <button class="ghost sm" id="dashRefresh">↻ Refresh</button>
+    </div>
+    <div id="dashList" style="margin-top:14px;"></div>
+    <div id="dashStatus" class="status" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- ══ CLASS COVERAGE ══ -->
+  <div class="card hidden" id="coverageCard">
+    <div class="row" style="justify-content:space-between;margin-bottom:14px;">
+      <h2 style="margin-bottom:0;">📚 Class Coverage — Topics taught per classroom</h2>
+      <button class="ghost sm" id="coverageRefresh">↻ Refresh</button>
+    </div>
+    <div id="coverageContent">
+      <div class="coverage-empty">Coverage will appear here after your first session.</div>
+    </div>
+  </div>
+
+  <!-- ══ SETUP ══ -->
+  <div class="card hidden" id="setupCard">
+    <h2>1 · Set up today's lecture</h2>
+    <div class="row">
+      <div class="field">
+        <label>Subject</label>
+        <input id="fSubject" placeholder="e.g. DBMS" value="DBMS">
+      </div>
+      <div class="field">
+        <label>Classroom</label>
+        <input id="fClassroom" placeholder="e.g. CSE-3A" value="CSE-3A">
+      </div>
+      <div class="field">
+        <label>Class ends at</label>
+        <input id="fEndTime" type="time">
+      </div>
+      <div class="field">
+        <label>Remind before end</label>
+        <select id="fRemindBefore">
+          <option value="2">2 min</option>
+          <option value="5" selected>5 min</option>
+          <option value="10">10 min</option>
+          <option value="15">15 min</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Attendance chime</label>
+        <select id="fAttendance">
+          <option value="1" selected>ON</option>
+          <option value="0">OFF</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:16px;" class="row">
+      <button id="startBtn" class="record">▶ Start Lecture &amp; Record</button>
+      <span style="color:var(--muted);">or</span>
+      <label class="file-input" for="audioFile">📁 Upload audio file</label>
+      <input id="audioFile" type="file" accept="audio/*">
+    </div>
+
+    <div class="divider">or skip audio — paste a transcript</div>
+    <div class="extract-meta">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+        Notes from text input are <strong>saved to Your Lectures</strong> and fully editable — identical to audio-recorded lectures.
+        Subject &amp; Classroom above are used automatically.
+      </p>
+    </div>
+    <textarea id="transcriptInput"
+      placeholder="Paste your lecture transcript here…&#10;After extraction, it will be saved to Your Lectures for editing and publishing."></textarea>
+    <div style="margin-top:10px;" class="row">
+      <button class="teal" id="extractTextBtn">🧠 Extract Notes &amp; Save</button>
+    </div>
+
+    <div class="progress-wrap" id="uploadProgressWrap"><div class="progress-bar" id="uploadProgressBar"></div></div>
+    <div id="processStatus" class="status" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- ══ LIVE RECORDING ══ -->
+  <div class="card hidden" id="liveCard">
+    <h2>🎙 Recording in progress</h2>
+    <div class="live-panel">
+      <div class="rec-dot"></div>
+      <div>
+        <div class="timer" id="liveTimer">00:00</div>
+        <div class="target" id="liveTarget"></div>
+      </div>
+      <div class="actions">
+        <button class="mark" id="markBtn" title="Save this moment">★ Mark moment</button>
+        <button class="stop" id="stopBtn">■ Stop &amp; Generate Notes</button>
+      </div>
+    </div>
+
+    <!-- Voice Command Strip -->
+    <div class="voice-cmd-strip" id="voiceCmdStrip">
+      <div>
+        <div class="vc-status" id="vcStatus">🎤 Voice Commands: <span id="vcState">Initialising…</span></div>
+        <div class="vc-cmds">Say: <b>"mark this"</b> · <b>"assignment"</b> · <b>"end of topic"</b> · <b>"important"</b></div>
+      </div>
+      <div id="vcLang" style="font-size:12px;color:#c4b5fd;"></div>
+    </div>
+
+    <div class="bookmarks-list hidden" id="bookmarksList"></div>
+  </div>
+
+  <!-- ══ RESULT ══ -->
+  <div class="card hidden" id="resultCard">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px;">
+      <h2 style="margin-bottom:0;">Structured Notes</h2>
+      <div id="langBadgeResult"></div>
+    </div>
+    <div id="timing" class="timing"></div>
+
+    <div class="split" style="margin-top:14px;">
+      <div>
+        <div style="margin-bottom:8px;"><span class="tag gold">TRANSCRIPT</span></div>
+        <div class="transcript-view" id="transcriptView"></div>
+      </div>
+      <div>
+        <div style="margin-bottom:8px;"><span class="tag">STRUCTURED NOTES</span></div>
+        <div class="notes-view" id="notesView"></div>
+      </div>
+    </div>
+
+    <div id="resultSavedNote" class="status ok" style="margin-top:12px;"></div>
+    <div class="download-row">
+      <button class="ghost" id="dlMarkdown">⬇ Download Markdown</button>
+      <button class="ghost" id="dlJson">⬇ Download JSON</button>
+      <button class="ghost" id="newBtn">↺ New Lecture</button>
+    </div>
+  </div>
+
+  <!-- ══ LECTURE DETAIL ══ -->
+  <div class="card hidden" id="detailCard">
+    <div class="row" style="justify-content:space-between;">
+      <h2 style="margin-bottom:0;" id="detailTitle"></h2>
+      <button class="ghost" id="backToDash">← Back</button>
+    </div>
+    <div id="detailMeta" class="timing" style="margin-top:4px;"></div>
+
+    <!-- QR Code (shown only when published) -->
+    <div class="hidden" id="qrSection" style="margin-top:14px;display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+      <div class="qr-wrap">
+        <img id="qrImg" width="160" height="160" alt="QR Code for students">
+        <div class="qr-hint">📱 Students scan this to open the published notes</div>
+        <div class="qr-url" id="qrUrl"></div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <p style="font-size:13px;color:var(--muted);">Share this QR code on your projector so students can access the notes instantly — no login required.</p>
+        <div class="download-row">
+          <a id="publicLink" target="_blank" rel="noopener"><button class="ghost sm">🔗 Open public page</button></a>
+          <button class="ghost sm" id="unpublishBtn">Unpublish</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="split" style="margin-top:16px;">
+      <div>
+        <div style="margin-bottom:8px;"><span class="tag gold">TRANSCRIPT</span></div>
+        <div class="transcript-view" id="detailTranscript"></div>
+      </div>
+      <div>
+        <div style="margin-bottom:8px;">
+          <span class="tag">NOTE EDITOR</span>
+          <span id="autoSaveBadge">✓ Auto-saved</span>
+        </div>
+        <textarea class="md-editor" id="detailMd" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <div class="download-row">
+      <button id="saveDraftBtn">💾 Save Draft</button>
+      <button class="mark" id="publishBtn">📢 Publish to Students</button>
+    </div>
+    <div id="detailStatus" class="status" style="margin-top:10px;"></div>
+  </div>
+
+</main>
+
+<script>
+/* ════════════════════════════════════════
+   IndexedDB Audio Vault
+════════════════════════════════════════ */
+const VaultDB = (()=>{
+  const DB='driftiq_vault',ST='recordings';let _db=null;
+  function open(){if(_db)return Promise.resolve(_db);return new Promise((r,j)=>{const q=indexedDB.open(DB,1);q.onupgradeneeded=e=>e.target.result.createObjectStore(ST,{keyPath:'id'});q.onsuccess=e=>{_db=e.target.result;r(_db);};q.onerror=()=>j(q.error);});}
+  async function save(e){const db=await open();return new Promise((r,j)=>{const tx=db.transaction(ST,'readwrite');tx.objectStore(ST).put(e).onsuccess=()=>r();tx.onerror=()=>j(tx.error);});}
+  async function list(){const db=await open();return new Promise((r,j)=>{const tx=db.transaction(ST,'readonly');const q=tx.objectStore(ST).getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>j(q.error);});}
+  async function remove(id){const db=await open();return new Promise((r,j)=>{const tx=db.transaction(ST,'readwrite');tx.objectStore(ST).delete(id).onsuccess=()=>r();tx.onerror=()=>j(tx.error);});}
+  return {save,list,remove};
+})();
+
+/* ════════════════════════════════════════
+   Auth
+════════════════════════════════════════ */
+const TOKEN_KEY='driftiq_token';
+let authToken=localStorage.getItem(TOKEN_KEY);
+function authHeaders(){return authToken?{'Authorization':'Bearer '+authToken}:{};}
+
+function showApp(user){
+  document.getElementById('authCard').classList.add('hidden');
+  ['dashCard','coverageCard','setupCard','analyticsCard'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  document.getElementById('userChip').classList.remove('hidden');
+  document.getElementById('userLabel').textContent=user.name||user.email;
+  loadDashboard();loadCoverage();loadAnalytics();checkVault();checkLastSession();
+}
+
+function showLogin(msg){
+  authToken=null;localStorage.removeItem(TOKEN_KEY);
+  document.getElementById('userChip').classList.add('hidden');
+  ['dashCard','coverageCard','setupCard','liveCard','resultCard','detailCard','vaultCard','analyticsCard']
+    .forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('authCard').classList.remove('hidden');
+  const s=document.getElementById('authStatus');
+  if(msg){s.className='status err';s.textContent=msg;}
+}
+
+async function initAuth(){
+  if(!authToken){showLogin();return;}
+  try{
+    const r=await fetch('/api/auth/me',{headers:authHeaders()});
+    const j=await r.json();
+    if(!r.ok||!j.ok)throw new Error();
+    showApp(j.user);
+  }catch(e){showLogin();}
+}
+
+async function doAuth(path){
+  const email=document.getElementById('aEmail').value.trim();
+  const password=document.getElementById('aPassword').value;
+  const name=document.getElementById('aName').value.trim();
+  const s=document.getElementById('authStatus');
+  if(!email||!password){s.className='status err';s.textContent='Enter email and password.';return;}
+  s.className='status';s.innerHTML='<span class="spinner"></span>Working…';
+  try{
+    const body=path.endsWith('register')?{email,password,name}:{email,password};
+    const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json();
+    if(!r.ok||!j.ok){const d=j.detail;throw new Error(typeof d==='string'?d:(d&&d[0]&&d[0].msg)||'Authentication failed');}
+    authToken=j.token;localStorage.setItem(TOKEN_KEY,authToken);
+    s.textContent='';showApp(j.user);
+  }catch(e){s.className='status err';s.textContent='Error: '+e.message;}
+}
+document.getElementById('loginBtn').onclick=()=>doAuth('/api/auth/login');
+document.getElementById('registerBtn').onclick=()=>doAuth('/api/auth/register');
+document.getElementById('logoutBtn').onclick=()=>showLogin();
+initAuth();
+
+/* ════════════════════════════════════════
+   API helpers
+════════════════════════════════════════ */
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function apiGet(path){
+  const r=await fetch(path,{headers:authHeaders()});
+  if(r.status===401){showLogin('Session expired — sign in again.');throw new Error('Not signed in');}
+  const j=await r.json();
+  if(!r.ok||!j.ok)throw new Error(typeof j.detail==='string'?j.detail:'Request failed');
+  return j;
+}
+async function apiSend(path,method,body){
+  const r=await fetch(path,{method,headers:Object.assign({'Content-Type':'application/json'},authHeaders()),body:body?JSON.stringify(body):undefined});
+  if(r.status===401){showLogin('Session expired — sign in again.');throw new Error('Not signed in');}
+  const j=await r.json();
+  if(!r.ok||!j.ok)throw new Error(typeof j.detail==='string'?j.detail:'Request failed');
+  return j;
+}
+
+/* ════════════════════════════════════════
+   Dashboard
+════════════════════════════════════════ */
+let currentNote=null;
+
+async function loadDashboard(){
+  const list=document.getElementById('dashList'),s=document.getElementById('dashStatus');
+  try{
+    const j=await apiGet('/api/lectures');
+    if(!j.lectures.length){list.innerHTML='';s.className='status';s.textContent='No lectures yet — record, upload, or paste a transcript below.';return;}
+    s.textContent='';
+    list.innerHTML=j.lectures.map(l=>{
+      const d=l.created_at?new Date(l.created_at).toLocaleString():'';
+      const status=l.note?l.note.status:'draft';
+      const isText=l.asr_provider==='text';
+      const isMultilang=l.asr_provider&&!isText&&l.asr_provider!=='text';
+      const srcClass=isText?'text':'';
+      const srcLabel=isText?'📝 TEXT':'🎙 AUDIO';
+      return `<div class="lect-row" data-id="${l.id}">
+        <span class="subj">${escHtml(l.subject||'Untitled')}</span>
+        <span class="meta">${d}${l.classroom?'<span class="dot-sep">·</span>'+escHtml(l.classroom):''}
+          <span class="dot-sep">·</span>${l.transcript_chars} chars
+          <span class="dot-sep">·</span>★ ${l.bookmarks}</span>
+        <span class="src-tag ${srcClass}">${srcLabel}</span>
+        <span class="badge ${status}">${status.toUpperCase()}</span>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.lect-row').forEach((row,i)=>{row.onclick=()=>openLecture(j.lectures[i].id);});
+  }catch(e){if(e.message!=='Not signed in'){s.className='status err';s.textContent='Error: '+e.message;}}
+}
+
+document.getElementById('dashRefresh').onclick=()=>{loadDashboard();loadCoverage();loadAnalytics();};
+
+/* ════════════════════════════════════════
+   Analytics (Feature 7)
+════════════════════════════════════════ */
+async function loadAnalytics(){
+  const el=document.getElementById('analyticsContent');
+  el.innerHTML='<div class="status"><span class="spinner"></span>Loading analytics…</div>';
+  try{
+    const j=await apiGet('/api/analytics');
+    if(!j.total_lectures){
+      el.innerHTML='<div class="analytics-empty">No data yet — analytics will appear after your first lecture.</div>';
+      return;
+    }
+
+    // Stat boxes
+    const statsHtml=`
+      <div class="stats-grid">
+        <div class="stat-box blue"><div class="stat-num">${j.total_lectures}</div><div class="stat-lbl">Total Lectures</div></div>
+        <div class="stat-box green"><div class="stat-num">${j.published_count}</div><div class="stat-lbl">Published</div></div>
+        <div class="stat-box gold"><div class="stat-num">${j.recent_count_7d}</div><div class="stat-lbl">This Week</div></div>
+        <div class="stat-box purple"><div class="stat-num">${j.total_unique_topics}</div><div class="stat-lbl">Unique Topics</div></div>
+        <div class="stat-box teal"><div class="stat-num">${j.est_minutes_recorded}</div><div class="stat-lbl">Est. Minutes</div></div>
+      </div>`;
+
+    // Top topics bar chart
+    const maxCount=j.top_topics.length?j.top_topics[0].count:1;
+    const topicsChart=j.top_topics.length?`
+      <div class="chart-wrap">
+        <div class="chart-title">🏆 Most Covered Topics</div>
+        ${j.top_topics.map((t,i)=>`
+          <div class="chart-bar-row">
+            <div class="chart-bar-label" title="${escHtml(t.topic)}">${escHtml(t.topic)}</div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill${i<3?' ':' '}" style="width:${Math.round(t.count/maxCount*100)}%"></div>
+            </div>
+            <div class="chart-bar-count">${t.count}×</div>
+          </div>`).join('')}
+      </div>`:'<div class="analytics-empty" style="margin-top:10px;">Topics will appear after notes are extracted.</div>';
+
+    // Classroom activity chart
+    const maxCls=j.classrooms.length?j.classrooms[0].count:1;
+    const classChart=j.classrooms.length?`
+      <div class="chart-wrap" style="margin-top:18px;">
+        <div class="chart-title">🏫 Sessions per Classroom</div>
+        ${j.classrooms.map(c=>`
+          <div class="chart-bar-row">
+            <div class="chart-bar-label" title="${escHtml(c.name)}">${escHtml(c.name)}</div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill teal" style="width:${Math.round(c.count/maxCls*100)}%"></div>
+            </div>
+            <div class="chart-bar-count">${c.count}</div>
+          </div>`).join('')}
+      </div>`:'';
+
+    el.innerHTML=statsHtml+topicsChart+classChart;
+  }catch(e){
+    if(e.message!=='Not signed in'){el.innerHTML=`<div class="status err">Analytics error: ${e.message}</div>`;}
+  }
+}
+document.getElementById('analyticsRefresh').onclick=loadAnalytics;
+
+/* ════════════════════════════════════════
+   Coverage tracker
+════════════════════════════════════════ */
+async function loadCoverage(){
+  const el=document.getElementById('coverageContent');
+  el.innerHTML='<div class="status"><span class="spinner"></span>Loading coverage…</div>';
+  try{
+    const j=await apiGet('/api/classroom-topics');
+    if(!j.classrooms.length){el.innerHTML='<div class="coverage-empty">Coverage will appear here after your first session.</div>';return;}
+    el.innerHTML=j.classrooms.map((cls,ci)=>`
+      <div class="classroom-block">
+        <div class="classroom-header" id="clsHdr_${ci}" onclick="toggleCls(${ci})">
+          <div>
+            <div class="cls-name">🏫 ${escHtml(cls.name)}</div>
+            <div class="cls-meta">${cls.sessions.length} session${cls.sessions.length!==1?'s':''} · ${cls.total_topics} topic${cls.total_topics!==1?'s':''}</div>
+          </div>
+          <span class="cls-chevron">▼</span>
+        </div>
+        <div class="classroom-sessions" id="clsSess_${ci}">
+          ${cls.sessions.map(s=>`
+            <div class="session-row">
+              <div class="session-date">${s.date?new Date(s.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}</div>
+              <div class="session-topics">
+                ${s.topics.length?s.topics.map(t=>`<span class="topic-chip">${escHtml(t)}</span>`).join(''):'<span class="topic-chip none">No topics yet</span>'}
+              </div>
+              ${s.note_status?`<span class="session-status ${s.note_status}">${s.note_status.toUpperCase()}</span>`:''}
+            </div>`).join('')}
+        </div>
+      </div>`).join('');
+    if(j.classrooms.length)toggleCls(0);
+  }catch(e){if(e.message!=='Not signed in'){el.innerHTML=`<div class="status err">Coverage error: ${e.message}</div>`;}}
+}
+
+function toggleCls(ci){
+  document.getElementById('clsHdr_'+ci).classList.toggle('open');
+  document.getElementById('clsSess_'+ci).classList.toggle('open');
+}
+document.getElementById('coverageRefresh').onclick=loadCoverage;
+
+/* ════════════════════════════════════════
+   Lecture Detail + QR Code (Feature 6)
+════════════════════════════════════════ */
+async function openLecture(id){
+  try{
+    const j=await apiGet('/api/lectures/'+id);
+    currentNote=j.note;
+    document.getElementById('detailTitle').textContent=j.lecture.subject||'Untitled';
+    const d=j.lecture.created_at?new Date(j.lecture.created_at).toLocaleString():'';
+    const srcLabel=j.lecture.asr_provider==='text'?'📝 Text input':'🎙 '+j.lecture.asr_provider;
+    document.getElementById('detailMeta').textContent=
+      `${d}${j.lecture.classroom?' · '+j.lecture.classroom:''} · ${srcLabel} · LLM: ${j.lecture.llm_provider||'—'}`;
+    document.getElementById('detailTranscript').textContent=j.lecture.transcript||'(no transcript)';
+    const savedDraft=localStorage.getItem('driftiq_draft_'+id);
+    document.getElementById('detailMd').value=savedDraft||(j.note?j.note.markdown:'');
+    if(savedDraft){
+      const b=document.getElementById('autoSaveBadge');b.textContent='✓ Local draft restored';b.classList.add('visible');
+    }
+    refreshDetailButtons();
+    ['dashCard','coverageCard','setupCard','resultCard','analyticsCard'].forEach(x=>document.getElementById(x).classList.add('hidden'));
+    document.getElementById('detailCard').classList.remove('hidden');
+    document.getElementById('detailStatus').textContent='';
+    window.scrollTo({top:0,behavior:'smooth'});
+    startNoteAutoSave(id);
+  }catch(e){if(e.message!=='Not signed in')alert('Could not open lecture: '+e.message);}
+}
+
+function refreshDetailButtons(){
+  const published=currentNote&&currentNote.status==='published';
+  document.getElementById('publishBtn').classList.toggle('hidden',!!published);
+  const qrSec=document.getElementById('qrSection');
+  if(published&&currentNote.slug){
+    const publicUrl=window.location.origin+'/notes/'+currentNote.slug;
+    // QR Code via free QR API (no auth, just img src)
+    document.getElementById('qrImg').src=
+      'https://api.qrserver.com/v1/create-qr-code/?size=160x160&format=png&margin=8&data='+encodeURIComponent(publicUrl);
+    document.getElementById('qrUrl').textContent=publicUrl;
+    document.getElementById('publicLink').href=publicUrl;
+    qrSec.classList.remove('hidden');
+    qrSec.style.display='flex';
+  }else{
+    qrSec.classList.add('hidden');
+  }
+}
+
+document.getElementById('backToDash').onclick=()=>{
+  stopNoteAutoSave();
+  document.getElementById('detailCard').classList.add('hidden');
+  ['dashCard','coverageCard','setupCard','analyticsCard'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  loadDashboard();loadCoverage();loadAnalytics();
+};
+
+document.getElementById('saveDraftBtn').onclick=async()=>{
+  if(!currentNote)return;
+  const s=document.getElementById('detailStatus');
+  s.className='status';s.innerHTML='<span class="spinner"></span>Saving…';
+  try{
+    const md=document.getElementById('detailMd').value;
+    const j=await apiSend('/api/notes/'+currentNote.id,'PUT',{markdown:md});
+    localStorage.removeItem('driftiq_draft_'+currentNote.id);
+    s.className='status ok';s.textContent=`Saved as version ${j.version}.`;
+    loadCoverage();loadAnalytics();
+  }catch(e){s.className='status err';s.textContent='Error: '+e.message;}
+};
+
+document.getElementById('publishBtn').onclick=async()=>{
+  if(!currentNote)return;
+  const s=document.getElementById('detailStatus');
+  s.className='status';s.innerHTML='<span class="spinner"></span>Publishing…';
+  try{
+    await apiSend('/api/notes/'+currentNote.id,'PUT',{markdown:document.getElementById('detailMd').value});
+    const j=await apiSend('/api/notes/'+currentNote.id+'/publish','POST');
+    currentNote.status='published';currentNote.slug=j.slug;
+    localStorage.removeItem('driftiq_draft_'+currentNote.id);
+    refreshDetailButtons();
+    s.className='status ok';s.textContent='✓ Published — students can access via the QR code above.';
+    loadCoverage();loadAnalytics();
+  }catch(e){s.className='status err';s.textContent='Error: '+e.message;}
+};
+
+document.getElementById('unpublishBtn').onclick=async()=>{
+  if(!currentNote)return;
+  const s=document.getElementById('detailStatus');
+  try{
+    await apiSend('/api/notes/'+currentNote.id+'/unpublish','POST');
+    currentNote.status='draft';refreshDetailButtons();
+    s.className='status ok';s.textContent='Unpublished — reverted to draft.';
+    loadCoverage();loadAnalytics();
+  }catch(e){s.className='status err';s.textContent='Error: '+e.message;}
+};
+
+/* ════════════════════════════════════════
+   Note auto-save
+════════════════════════════════════════ */
+let _autoSaveTimer=null;
+function startNoteAutoSave(noteId){
+  stopNoteAutoSave();
+  _autoSaveTimer=setInterval(()=>{
+    const md=document.getElementById('detailMd').value;
+    if(!md)return;
+    localStorage.setItem('driftiq_draft_'+noteId,md);
+    const b=document.getElementById('autoSaveBadge');
+    const n=new Date();
+    b.textContent=`✓ Auto-saved ${n.getHours().toString().padStart(2,'0')}:${n.getMinutes().toString().padStart(2,'0')}`;
+    b.classList.add('visible');setTimeout(()=>b.classList.remove('visible'),3000);
+  },30000);
+}
+function stopNoteAutoSave(){if(_autoSaveTimer){clearInterval(_autoSaveTimer);_autoSaveTimer=null;}}
+
+/* ════════════════════════════════════════
+   Provider badge
+════════════════════════════════════════ */
+fetch('/api/health').then(r=>r.json()).then(h=>{
+  document.getElementById('providerBadge').textContent=`ASR: ${h.asr_provider}  ·  LLM: ${h.llm_provider}`;
+}).catch(()=>{document.getElementById('providerBadge').textContent='Backend offline';});
+
+/* ════════════════════════════════════════
+   Default end time (+50 min)
+════════════════════════════════════════ */
+(function(){const d=new Date(Date.now()+50*60*1000);
+  document.getElementById('fEndTime').value=
+    String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');})();
+
+/* ════════════════════════════════════════
+   Chime
+════════════════════════════════════════ */
+let audioCtx=null;
+function chime(kind='remind'){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const cfg=kind==='final'?[880,660,880]:kind==='danger'?[1000,800]:kind==='cmd'?[660,880,1000]:[660,880];
+    let t=audioCtx.currentTime;
+    cfg.forEach(freq=>{
+      const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+      osc.type='sine';osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,t);gain.gain.exponentialRampToValueAtTime(0.25,t+0.02);gain.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+      osc.connect(gain).connect(audioCtx.destination);osc.start(t);osc.stop(t+0.35);t+=0.38;
+    });
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════
+   Banners
+════════════════════════════════════════ */
+function banner(text,kind='remind',autoHideMs=6000){
+  document.querySelectorAll('.banner').forEach(b=>b.remove());
+  const b=document.createElement('div');
+  b.className='banner'+(kind==='danger'?' danger':'');b.textContent=text;
+  document.body.appendChild(b);if(autoHideMs)setTimeout(()=>b.remove(),autoHideMs);
+}
+
+function voiceFlash(text){
+  document.querySelectorAll('.voice-flash').forEach(x=>x.remove());
+  const el=document.createElement('div');el.className='voice-flash';el.textContent=text;
+  document.body.appendChild(el);setTimeout(()=>el.remove(),2800);
+}
+
+const offlineBanner=document.getElementById('offlineBanner');
+window.addEventListener('online',()=>offlineBanner.classList.remove('visible'));
+window.addEventListener('offline',()=>offlineBanner.classList.add('visible'));
+if(!navigator.onLine)offlineBanner.classList.add('visible');
+
+let _dangerState='';
+window.addEventListener('beforeunload',e=>{
+  if(_dangerState){e.preventDefault();e.returnValue=_dangerState==='recording'?'A lecture is being recorded.':'An upload is in progress.';}
+});
+
+/* ════════════════════════════════════════
+   Voice Commands (Feature 10)
+════════════════════════════════════════ */
+let voiceRecognition=null;
+const VoiceCmds=[
+  {phrases:['mark this','mark it','bookmark this','mark'],action:'mark',label:'★ Marked!'},
+  {phrases:['assignment','homework','home work'],action:'assignment',label:'📝 Assignment flagged!'},
+  {phrases:['end of topic','next topic','topic end','change topic'],action:'topic_end',label:'📌 Topic separator added'},
+  {phrases:['important','this is important','very important','key point'],action:'important',label:'⚠ Key point saved!'},
+];
+
+function matchVoiceCmd(spoken){
+  const s=spoken.toLowerCase().trim();
+  for(const cmd of VoiceCmds){
+    if(cmd.phrases.some(p=>s.includes(p)))return cmd;
+  }
+  return null;
+}
+
+function startVoiceCommands(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const vcState=document.getElementById('vcState');
+  if(!SR){
+    if(vcState)vcState.textContent='Not supported in this browser (Chrome/Edge required)';
+    return;
+  }
+  voiceRecognition=new SR();
+  voiceRecognition.continuous=true;
+  voiceRecognition.interimResults=false;
+  voiceRecognition.lang='en-IN';  // Indian English accent model
+
+  voiceRecognition.onstart=()=>{if(vcState)vcState.textContent='Active 🟢';};
+  voiceRecognition.onend=()=>{
+    // Auto-restart if still recording (SpeechRecognition stops after silence)
+    if(_dangerState==='recording'&&voiceRecognition){
+      try{voiceRecognition.start();}catch(e){}
+    }
+  };
+  voiceRecognition.onerror=e=>{
+    if(vcState)vcState.textContent=`Error: ${e.error}`;
+    console.warn('[VoiceCmd]',e.error);
+  };
+  voiceRecognition.onresult=e=>{
+    const res=e.results[e.results.length-1];
+    if(!res.isFinal)return;
+    const spoken=res[0].transcript;
+    const conf=res[0].confidence;
+    if(document.getElementById('vcLang'))
+      document.getElementById('vcLang').textContent=`Heard: "${spoken}" (${Math.round(conf*100)}%)`;
+    const cmd=matchVoiceCmd(spoken);
+    if(cmd){
+      handleVoiceAction(cmd.action,cmd.label);
+    }
+  };
+  try{voiceRecognition.start();}catch(e){if(vcState)vcState.textContent='Could not start';}
+}
+
+function handleVoiceAction(action,label){
+  const t=recStart?(Date.now()-recStart)/1000:0;
+  chime('cmd');
+  if(action==='mark'){
+    document.getElementById('markBtn').click();
+    voiceFlash('🎤 '+label);
+  }else if(action==='assignment'){
+    bookmarks.push({t,label:'📝 Assignment mentioned'});
+    refreshBookmarks();voiceFlash('🎤 '+label);
+  }else if(action==='topic_end'){
+    bookmarks.push({t,label:'—— End of Topic ——'});
+    refreshBookmarks();voiceFlash('🎤 '+label);
+  }else if(action==='important'){
+    bookmarks.push({t,label:'⚠ IMPORTANT POINT'});
+    refreshBookmarks();voiceFlash('🎤 '+label);
+  }
+}
+
+function stopVoiceCommands(){
+  if(voiceRecognition){try{voiceRecognition.stop();}catch(e){}voiceRecognition=null;}
+}
+
+/* ════════════════════════════════════════
+   Recording
+════════════════════════════════════════ */
+let mediaRecorder=null,chunks=[],recStart=0,recTimerId=null;
+let bookmarks=[],firedReminders=new Set(),lectureConfig=null;
+function fmtMMSS(s){s=Math.max(0,Math.floor(s));return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+
+document.getElementById('startBtn').onclick=async()=>{
+  const subject=document.getElementById('fSubject').value.trim()||'Lecture';
+  const classroom=document.getElementById('fClassroom').value.trim()||'—';
+  const endTime=document.getElementById('fEndTime').value;
+  const remindBefore=parseInt(document.getElementById('fRemindBefore').value||'5',10);
+  const attendance=document.getElementById('fAttendance').value==='1';
+  if(!endTime){alert('Please set the class end time.');return;}
+  const[hh,mm]=endTime.split(':').map(Number);
+  const endDate=new Date();endDate.setHours(hh,mm,0,0);
+  if(endDate.getTime()<Date.now())endDate.setDate(endDate.getDate()+1);
+  lectureConfig={subject,classroom,endTs:endDate.getTime(),remindBefore,attendance};
+
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    let mime='audio/webm;codecs=opus';if(!MediaRecorder.isTypeSupported(mime))mime='';
+    mediaRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:{});
+    chunks=[];bookmarks=[];firedReminders.clear();
+    mediaRecorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+    mediaRecorder.onstop=onRecStop;
+    mediaRecorder.start(1000);recStart=Date.now();_dangerState='recording';
+    document.getElementById('setupCard').classList.add('hidden');
+    document.getElementById('liveCard').classList.remove('hidden');
+    document.getElementById('resultCard').classList.add('hidden');
+    document.getElementById('bookmarksList').classList.add('hidden');
+    document.getElementById('liveTarget').textContent=`${subject} · ${classroom} · ends at ${endTime}`;
+    tickTimer();recTimerId=setInterval(tickTimer,500);
+    startVoiceCommands();  // Feature 10
+    if('wakeLock'in navigator){try{await navigator.wakeLock.request('screen');}catch(e){}}
+  }catch(e){alert('Microphone access denied or unavailable.\n\n'+e);}
+};
+
+function tickTimer(){
+  if(!lectureConfig)return;
+  const now=Date.now(),elapsed=Math.floor((now-recStart)/1000),remaining=Math.floor((lectureConfig.endTs-now)/1000);
+  const t=document.getElementById('liveTimer');
+  if(remaining>=0){
+    t.textContent=`${fmtMMSS(elapsed)} / -${fmtMMSS(remaining)}`;
+    t.classList.remove('warn','danger');
+    if(remaining<=60)t.classList.add('danger');
+    else if(remaining<=lectureConfig.remindBefore*60)t.classList.add('warn');
+  }else{t.textContent=`${fmtMMSS(elapsed)} (+${fmtMMSS(-remaining)})`;t.classList.add('danger');}
+  const sb=lectureConfig.remindBefore*60;
+  if(remaining<=sb&&remaining>sb-2&&!firedReminders.has('remind')){firedReminders.add('remind');chime('remind');banner(lectureConfig.attendance?`${lectureConfig.remindBefore} min left — wrap up & take attendance`:`${lectureConfig.remindBefore} min left — wrap up`);}
+  if(remaining<=60&&remaining>58&&!firedReminders.has('one')){firedReminders.add('one');chime('danger');banner('1 minute left','danger',5000);}
+  if(remaining<=0&&!firedReminders.has('end')){firedReminders.add('end');chime('final');banner('Class ended — stop the recording','danger',8000);}
+}
+
+document.getElementById('markBtn').onclick=()=>{
+  if(!recStart)return;const t=(Date.now()-recStart)/1000;
+  const label=prompt('Label for this moment (optional):','')||'';
+  bookmarks.push({t,label});refreshBookmarks();chime('remind');
+};
+function refreshBookmarks(){
+  const el=document.getElementById('bookmarksList');
+  if(!bookmarks.length){el.classList.add('hidden');return;}
+  el.classList.remove('hidden');
+  el.innerHTML=`<b>★ ${bookmarks.length} moment${bookmarks.length>1?'s':''} saved:</b> `+
+    bookmarks.map(b=>`[${fmtMMSS(b.t)}] ${b.label||'—'}`).join(' · ');
+}
+
+document.getElementById('stopBtn').onclick=()=>{
+  clearInterval(recTimerId);stopVoiceCommands();
+  if(mediaRecorder){mediaRecorder.stop();mediaRecorder.stream.getTracks().forEach(t=>t.stop());}
+};
+
+async function onRecStop(){
+  _dangerState='';
+  const blob=new Blob(chunks,{type:mediaRecorder.mimeType||'audio/webm'});
+  const mimeType=blob.type;
+  const subject=lectureConfig?lectureConfig.subject:'Lecture';
+  const classroom=lectureConfig?lectureConfig.classroom:'';
+  const vaultId='rec_'+Date.now();
+  try{await VaultDB.save({id:vaultId,subject,classroom,savedAt:new Date().toISOString(),mimeType,blob,bookmarks:JSON.parse(JSON.stringify(bookmarks))});}
+  catch(e){console.warn('[Vault] save failed:',e);}
+  const file=new File([blob],'recording.webm',{type:mimeType});
+  document.getElementById('liveCard').classList.add('hidden');
+  document.getElementById('setupCard').classList.remove('hidden');
+  processAudioFile(file,bookmarks,vaultId);
+}
+
+/* ════════════════════════════════════════
+   File upload
+════════════════════════════════════════ */
+document.getElementById('audioFile').onchange=e=>{const f=e.target.files[0];if(f)processAudioFile(f,[],null);};
+
+/* ════════════════════════════════════════
+   processAudioFile — XHR + retry + vault
+════════════════════════════════════════ */
+async function processAudioFile(file,moments,vaultId){
+  const status=document.getElementById('processStatus');
+  const progressWrap=document.getElementById('uploadProgressWrap');
+  const progressBar=document.getElementById('uploadProgressBar');
+  const fd=new FormData();
+  fd.append('audio',file,file.name||'recording.webm');
+  fd.append('moments',JSON.stringify(moments||[]));
+  if(lectureConfig){fd.append('subject',lectureConfig.subject||'');fd.append('classroom',lectureConfig.classroom||'');}
+  const MAX_RETRIES=3,DELAYS=[2000,5000,10000];let lastErr='';
+  for(let attempt=1;attempt<=MAX_RETRIES;attempt++){
+    status.className='status';
+    status.innerHTML=`<span class="spinner"></span>Uploading ${(file.size/1024).toFixed(0)} KB, transcribing (multilingual auto-detect)…${MAX_RETRIES>1?' (attempt '+attempt+'/'+MAX_RETRIES+')':''}`;
+    progressWrap.classList.add('visible');progressBar.style.width='0%';_dangerState='uploading';
+    try{
+      const result=await new Promise((resolve,reject)=>{
+        const xhr=new XMLHttpRequest();xhr.open('POST','/api/process');
+        if(authToken)xhr.setRequestHeader('Authorization','Bearer '+authToken);
+        xhr.upload.onprogress=e=>{if(e.lengthComputable)progressBar.style.width=Math.round(e.loaded/e.total*90)+'%';};
+        xhr.onload=()=>{progressBar.style.width='100%';if(xhr.status===401){reject({type:'auth'});return;}
+          try{const j=JSON.parse(xhr.responseText);if(!j.ok)reject(new Error(j.detail||'Processing failed'));else resolve(j);}
+          catch(e){reject(new Error('Invalid JSON response'));}};
+        xhr.onerror=()=>reject(new Error('Network error'));
+        xhr.ontimeout=()=>reject(new Error('Request timed out'));
+        xhr.timeout=600000;xhr.send(fd);
+      });
+      _dangerState='';progressWrap.classList.remove('visible');
+      const langInfo=result.detected_lang&&result.detected_lang!=='en'
+        ? ` 🌐 Detected: ${result.detected_lang_name||result.detected_lang}`:'';
+      status.className='status ok';
+      status.textContent=`Done in ${result.timing.total_s}s.${langInfo} Saved to Your Lectures.`;
+      if(vaultId){try{await VaultDB.remove(vaultId);checkVault();}catch(e){}}
+      saveLastSession(result);render(result);loadDashboard();loadCoverage();loadAnalytics();
+      return;
+    }catch(err){
+      _dangerState='';progressWrap.classList.remove('visible');
+      if(err&&err.type==='auth'){showLogin('Session expired — recording saved. Sign in and retry from the vault.');return;}
+      lastErr=err.message||String(err);
+      if(attempt<MAX_RETRIES){
+        const delay=DELAYS[attempt-1];
+        status.innerHTML=`<span class="spinner"></span>Failed (${lastErr}). Retrying in ${delay/1000}s…`;
+        await new Promise(r=>setTimeout(r,delay));
+      }
+    }
+  }
+  status.className='status err';
+  const vm=vaultId?' Recording preserved in recovery panel — retry or download.':'';
+  status.textContent=`Failed after ${MAX_RETRIES} attempts: ${lastErr}.${vm}`;
+  checkVault();
+}
+
+/* ════════════════════════════════════════
+   Text extraction (full parity)
+════════════════════════════════════════ */
+document.getElementById('extractTextBtn').onclick=async()=>{
+  const txt=document.getElementById('transcriptInput').value.trim();
+  if(!txt){alert('Paste some transcript text first.');return;}
+  const subject=document.getElementById('fSubject').value.trim();
+  const classroom=document.getElementById('fClassroom').value.trim();
+  const status=document.getElementById('processStatus');
+  const progressWrap=document.getElementById('uploadProgressWrap');
+  const progressBar=document.getElementById('uploadProgressBar');
+  status.className='status';
+  status.innerHTML='<span class="spinner"></span>Extracting notes and saving to Your Lectures…';
+  progressWrap.classList.add('visible');progressBar.style.width='25%';
+  const fd=new FormData();fd.append('transcript',txt);fd.append('subject',subject);fd.append('classroom',classroom);
+  try{
+    const r=await fetch('/api/extract',{method:'POST',body:fd,headers:authHeaders()});
+    progressBar.style.width='90%';
+    if(r.status===401){showLogin('Session expired — sign in again.');return;}
+    const j=await r.json();
+    if(!r.ok||!j.ok)throw new Error(j.detail||'Extraction failed');
+    progressBar.style.width='100%';
+    progressWrap.classList.remove('visible');
+    status.className='status ok';
+    status.textContent=`Done in ${j.timing.total_s}s. Saved — "${subject||'Untitled'}${classroom?' · '+classroom:''}".`;
+    saveLastSession(j);render(j);
+    loadDashboard();loadCoverage();loadAnalytics();
+  }catch(e){
+    progressWrap.classList.remove('visible');
+    status.className='status err';status.textContent='Error: '+e.message;
+  }
+};
+
+/* ════════════════════════════════════════
+   Vault
+════════════════════════════════════════ */
+async function checkVault(){
+  let entries=[];try{entries=await VaultDB.list();}catch(e){return;}
+  const card=document.getElementById('vaultCard'),listEl=document.getElementById('vaultList');
+  if(!entries.length){card.classList.add('hidden');return;}
+  card.classList.remove('hidden');
+  listEl.innerHTML=entries.map(e=>`
+    <div class="vault-entry" id="ve_${e.id}">
+      <div class="ve-info">
+        <div class="ve-subject">${escHtml(e.subject||'Untitled')}${e.classroom?' · '+escHtml(e.classroom):''}</div>
+        <div class="ve-meta">Saved ${new Date(e.savedAt).toLocaleString()} · ${(e.blob.size/1024).toFixed(0)} KB · ${(e.bookmarks||[]).length} marks</div>
+        <div class="progress-wrap" id="vp_${e.id}"><div class="progress-bar" id="vpb_${e.id}"></div></div>
+        <div class="status" id="vs_${e.id}"></div>
+      </div>
+      <div class="ve-actions">
+        <button class="sm" id="vretry_${e.id}">↻ Retry Upload</button>
+        <button class="sm ghost" id="vdl_${e.id}">⬇ Download Audio</button>
+        <button class="danger-btn sm" id="vdel_${e.id}">✕ Discard</button>
+      </div>
+    </div>`).join('');
+  entries.forEach(entry=>{
+    document.getElementById('vretry_'+entry.id).onclick=async()=>{
+      const prev=lectureConfig;
+      lectureConfig={subject:entry.subject,classroom:entry.classroom,endTs:0,remindBefore:5,attendance:false};
+      const retryBtn=document.getElementById('vretry_'+entry.id);
+      retryBtn.disabled=true;
+      const sEl=document.getElementById('vs_'+entry.id);
+      const pWrap=document.getElementById('vp_'+entry.id);
+      const pBar=document.getElementById('vpb_'+entry.id);
+      sEl.className='status';sEl.innerHTML='<span class="spinner"></span>Uploading…';
+      pWrap.style.display='block';
+      const file=new File([entry.blob],'recording.webm',{type:entry.mimeType});
+      const fd=new FormData();fd.append('audio',file,'recording.webm');fd.append('moments',JSON.stringify(entry.bookmarks||[]));fd.append('subject',entry.subject||'');fd.append('classroom',entry.classroom||'');
+      try{
+        const result=await new Promise((resolve,reject)=>{
+          const xhr=new XMLHttpRequest();xhr.open('POST','/api/process');
+          if(authToken)xhr.setRequestHeader('Authorization','Bearer '+authToken);
+          xhr.upload.onprogress=e=>{if(e.lengthComputable)pBar.style.width=Math.round(e.loaded/e.total*90)+'%';};
+          xhr.onload=()=>{pBar.style.width='100%';if(xhr.status===401){reject({type:'auth'});return;}
+            try{const j=JSON.parse(xhr.responseText);if(!j.ok)reject(new Error(j.detail||'Failed'));else resolve(j);}catch(e){reject(new Error('Invalid JSON'));}};
+          xhr.onerror=()=>reject(new Error('Network error'));xhr.timeout=600000;xhr.ontimeout=()=>reject(new Error('Timeout'));xhr.send(fd);
+        });
+        await VaultDB.remove(entry.id);saveLastSession(result);render(result);loadDashboard();loadCoverage();loadAnalytics();checkVault();lectureConfig=prev;
+      }catch(err){
+        lectureConfig=prev;retryBtn.disabled=false;pWrap.style.display='none';
+        if(err&&err.type==='auth'){sEl.className='status err';sEl.textContent='Session expired — sign in again.';}
+        else{sEl.className='status err';sEl.textContent='Failed: '+(err.message||err);}
+      }
+    };
+    document.getElementById('vdl_'+entry.id).onclick=()=>{
+      const ext=entry.mimeType&&entry.mimeType.includes('ogg')?'.ogg':'.webm';
+      downloadBlob(entry.blob,`driftiq_${entry.subject||'recording'}_${entry.savedAt.split('T')[0]}${ext}`);
+    };
+    document.getElementById('vdel_'+entry.id).onclick=async()=>{
+      if(!confirm(`Permanently discard the recording for "${entry.subject||'this lecture'}"?`))return;
+      await VaultDB.remove(entry.id);checkVault();
+    };
+  });
+}
+
+/* ════════════════════════════════════════
+   Last session
+════════════════════════════════════════ */
+const LAST_SESSION_KEY='driftiq_last_session';
+function saveLastSession(result){
+  try{localStorage.setItem(LAST_SESSION_KEY,JSON.stringify({savedAt:new Date().toISOString(),transcript:result.transcript,notes:result.notes,markdown:result.markdown,timing:result.timing,providers:result.providers,detected_lang:result.detected_lang,detected_lang_name:result.detected_lang_name}));}
+  catch(e){console.warn('Could not save session:',e);}
+}
+function checkLastSession(){
+  const raw=localStorage.getItem(LAST_SESSION_KEY);if(!raw)return;
+  try{
+    const session=JSON.parse(raw);
+    const bar=document.getElementById('sessionRestoreBar');
+    bar.querySelector('p').innerHTML=`📋 <strong>Last session found</strong> from ${new Date(session.savedAt).toLocaleString()}. Restore?`;
+    bar.classList.remove('hidden');
+    document.getElementById('restoreSessionBtn').onclick=()=>{render(session);bar.classList.add('hidden');};
+    document.getElementById('dismissSessionBtn').onclick=()=>{localStorage.removeItem(LAST_SESSION_KEY);bar.classList.add('hidden');};
+  }catch(e){localStorage.removeItem(LAST_SESSION_KEY);}
+}
+
+/* ════════════════════════════════════════
+   Render (Feature 1 — language badge)
+════════════════════════════════════════ */
+function renderLangBadge(detected_lang,detected_lang_name){
+  const container=document.getElementById('langBadgeResult');
+  if(!container)return;
+  if(!detected_lang||detected_lang==='text'){container.innerHTML='';return;}
+  const isMultilang=detected_lang!=='en';
+  container.innerHTML=`<span class="lang-badge ${isMultilang?'multilang':'en'}">
+    ${isMultilang?'🌐':'🗣'} ${detected_lang_name||detected_lang.toUpperCase()}
+    ${isMultilang?' (code-switching)':''}
+  </span>`;
+}
+
+function renderTranscriptWithLang(text){
+  // Highlight [🌐 ...] language markers injected by ASR
+  const escaped=escHtml(text);
+  return escaped.replace(/\[🌐 ([^\]]+)\]/g,(_,m)=>`<span class="lang-marker">🌐 ${m}</span>`);
+}
+
+function render(j){
+  const card=document.getElementById('resultCard');
+  card.classList.remove('hidden');
+  renderLangBadge(j.detected_lang,j.detected_lang_name);
+  document.getElementById('timing').textContent=
+    `Timing — ${JSON.stringify(j.timing)}  ·  Providers — ${JSON.stringify(j.providers)}`;
+  document.getElementById('transcriptView').innerHTML=renderTranscriptWithLang(j.transcript||'(no transcript)');
+  document.getElementById('notesView').innerHTML=markdownToHtml(j.markdown||'');
+  document.getElementById('dlMarkdown').onclick=()=>downloadText('driftiq_notes.md',j.markdown);
+  document.getElementById('dlJson').onclick=()=>downloadText('driftiq_notes.json',JSON.stringify(j.notes,null,2));
+  const savedNote=document.getElementById('resultSavedNote');
+  savedNote.textContent=j.lecture_id?`✓ Saved as Lecture #${j.lecture_id} — open from "Your Lectures" to edit and publish.`:'';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('newBtn').onclick=()=>{
+  document.getElementById('resultCard').classList.add('hidden');
+  document.getElementById('processStatus').textContent='';
+  document.getElementById('uploadProgressWrap').classList.remove('visible');
+  bookmarks=[];firedReminders.clear();
+  document.getElementById('bookmarksList').classList.add('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+/* ════════════════════════════════════════
+   Markdown → HTML
+════════════════════════════════════════ */
+function markdownToHtml(md){
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines=md.split('\n');let html='',inList=false;
+  const close=()=>{if(inList){html+='</ul>';inList=false;}};
+  for(const raw of lines){
+    const line=raw.trimEnd();if(!line){close();continue;}let m;
+    if((m=line.match(/^### (.*)/))){close();html+=`<h3>${esc(m[1])}</h3>`;continue;}
+    if((m=line.match(/^## (.*)/))){close();html+=`<h2>${esc(m[1])}</h2>`;continue;}
+    if((m=line.match(/^# (.*)/))){close();html+=`<h1>${esc(m[1])}</h1>`;continue;}
+    if((m=line.match(/^- (.*)/))){if(!inList){html+='<ul>';inList=true;}html+=`<li>${inline(m[1])}</li>`;continue;}
+    close();html+=`<p>${inline(line)}</p>`;
+  }
+  close();return html;
+  function inline(s){s=esc(s);s=s.replace(/`([^`]+)`/g,(_,g)=>`<code>${g}</code>`);s=s.replace(/\*\*([^*]+)\*\*/g,(_,g)=>`<strong>${g}</strong>`);return s;}
+}
+
+/* ════════════════════════════════════════
+   Download helpers
+════════════════════════════════════════ */
+function downloadText(name,text){downloadBlob(new Blob([text],{type:'text/plain'}),name);}
+function downloadBlob(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Local development extras: everything in production, plus local Whisper
+# for offline ASR (ASR_PROVIDER=local). Not installed on deployed hosts —
+# free tiers have neither the RAM nor the need for it.
+-r requirements.txt
+faster-whisper>=1.0

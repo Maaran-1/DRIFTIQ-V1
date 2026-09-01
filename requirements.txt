@@ -1,0 +1,3 @@
+# Root requirements so Railway's Nixpacks auto-detects Python.
+# Production deps only — local Whisper lives in backend/requirements-local.txt.
+-r backend/requirements.txt

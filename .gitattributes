@@ -1,0 +1,2 @@
+# Shell scripts must stay LF — CRLF breaks bash on Linux deploy hosts
+*.sh text eol=lf

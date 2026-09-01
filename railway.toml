@@ -1,0 +1,9 @@
+# Railway deployment config — see DEPLOY.md for the full walkthrough.
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "bash backend/start.sh"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
